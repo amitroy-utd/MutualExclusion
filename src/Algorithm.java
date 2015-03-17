@@ -1,11 +1,16 @@
 import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.*;
-public class Algorithm {
+public class Algorithm implements Runnable{
 	public static Map<Integer, String> map=Collections.synchronizedMap(new TreeMap<Integer, String>());	
 	public static Map<String, String> cs_queue=Collections.synchronizedMap(new TreeMap<String, String>());
 	public static Map<Integer, String> shared_keys=Collections.synchronizedMap(new TreeMap<Integer, String>());	
 	public static int NodeID=0;
 	public static String cs_flag="disabled";
+	static Socket socket = null;
+	
+
 	public void getNodeInfoFromFile(int nodeId, String topologyFile)
 	{
 		BufferedReader br;
@@ -68,22 +73,112 @@ public class Algorithm {
 		}
 		return false;
 	}
-	public static void cs_handler()
+	public static boolean checkMyRequestExist()
 	{
-		if(checkKeys()==true)
+		Collection<String> collectionString = ((TreeMap<String, String>) cs_queue).values();
+		for (Object o : collectionString)
 		{
-			cs_flag="enabled";
-			// execute critical section
+			if(Integer.parseInt(o.toString())==NodeID)
+			{
+				return true;
+			}
+			break;
+		}
+		return false;
+	}
+	public static void cs_handler() 
+	{
+		Map.Entry<String, String> entry_1 = ((TreeMap<String, String>) cs_queue).firstEntry();
+		final String currentProcessingRequest=entry_1.getKey();	
+		if(Integer.parseInt(currentProcessingRequest.split("_")[1])!=NodeID)
+		{
+			final int requesting_node=Integer.parseInt(currentProcessingRequest.split("_")[1]);
+			Thread t = new Thread(new Runnable() {
+		         public void run()
+		         {
+		        	 String []nodeNetInfo=map.get(requesting_node).split(":");
+						try {
+							socket=new Socket(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]));
+							ObjectOutputStream out = null;
+							out = new ObjectOutputStream(socket.getOutputStream());
+							MessageStruct ms = null;
+							if(checkMyRequestExist()==true)
+							{
+								ms=new MessageStruct("request-response",NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
+							}
+							else
+							{
+								ms=new MessageStruct("response",NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
+							}
+							out.writeObject(ms);
+				           	out.flush();
+				           	out.close();
+				           	socket.close();
+						} catch (NumberFormatException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (UnknownHostException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}									
+		         }
+			});
+			t.start();	
 		}
 		else
 		{
-			if(cs_flag=="disabled")
+			if(checkKeys()==true)
 			{
-				for(int i=0;i<map.size();i++)
+				synchronized(cs_flag){
+					cs_flag="enabled";
+				}			
+				cs_queue.remove(currentProcessingRequest);
+				// execute critical section
+			}
+			else
+			{
+				synchronized(cs_flag)
 				{
-					if(i!=NodeID && map.containsKey(i)==false)
+					if(cs_flag=="disabled")
 					{
-						
+						cs_flag="wait";
+						for (Map.Entry<Integer, String> entry : map.entrySet())
+						{
+							Integer key = entry.getKey();
+							final String value = entry.getValue();					
+							if(key!=NodeID && shared_keys.containsKey(key)==false)
+							{
+								Thread t = new Thread(new Runnable() {
+							         public void run()
+							         {
+							        	 String []nodeNetInfo=value.split(":");
+											try {
+												socket=new Socket(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]));
+												ObjectOutputStream out = null;
+												out = new ObjectOutputStream(socket.getOutputStream());
+												MessageStruct ms=new MessageStruct("request",NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),"");
+									           	out.writeObject(ms);
+									           	out.flush();
+									           	out.close();
+									           	socket.close();
+											} catch (NumberFormatException e) {
+												// TODO Auto-generated catch block
+												e.printStackTrace();
+											} catch (UnknownHostException e) {
+												// TODO Auto-generated catch block
+												e.printStackTrace();
+											} catch (IOException e) {
+												// TODO Auto-generated catch block
+												e.printStackTrace();
+											}									
+							         }
+								});
+								t.start();						
+							}
+						}
 					}
 				}
 			}
@@ -93,14 +188,28 @@ public class Algorithm {
 	{
 		long timestamp=System.currentTimeMillis();		
 		cs_queue.put(timestamp+"_"+NodeID,Integer.toString(NodeID)); //""+NodeID+""
-		cs_handler();
-		 		 
+		synchronized(cs_flag)
+		{
+			if(cs_flag=="disabled")
+			{
+				Thread t = new Thread(new Runnable() {
+			         public void run()
+			         {
+			        	 cs_handler();
+			         }
+				});
+				t.start();
+			}
+		}
 	}
 	public static void cs_leave()
 	{
 		cs_flag="disabled";		
 		cs_handler();
 		 		 
+	}
+	public void run(){
+		
 	}
 	
 }
