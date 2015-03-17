@@ -3,9 +3,9 @@ import java.util.*;
 public class Algorithm {
 	public static Map<Integer, String> map=Collections.synchronizedMap(new TreeMap<Integer, String>());	
 	public static Map<String, String> cs_queue=Collections.synchronizedMap(new TreeMap<String, String>());
-	public static Map<Integer, String> shared_keys=Collections.synchronizedMap(new TreeMap<Integer, String>());
-	
+	public static Map<Integer, String> shared_keys=Collections.synchronizedMap(new TreeMap<Integer, String>());	
 	public static int NodeID=0;
+	public static String cs_flag="disabled";
 	public void getNodeInfoFromFile(int nodeId, String topologyFile)
 	{
 		BufferedReader br;
@@ -72,11 +72,21 @@ public class Algorithm {
 	{
 		if(checkKeys()==true)
 		{
+			cs_flag="enabled";
 			// execute critical section
 		}
 		else
 		{
-			// request for keys
+			if(cs_flag=="disabled")
+			{
+				for(int i=0;i<map.size();i++)
+				{
+					if(i!=NodeID && map.containsKey(i)==false)
+					{
+						
+					}
+				}
+			}
 		}
 	}
 	public static void cs_enter()
@@ -86,4 +96,11 @@ public class Algorithm {
 		cs_handler();
 		 		 
 	}
+	public static void cs_leave()
+	{
+		cs_flag="disabled";		
+		cs_handler();
+		 		 
+	}
+	
 }
