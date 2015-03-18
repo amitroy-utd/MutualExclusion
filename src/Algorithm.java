@@ -102,14 +102,14 @@ public class Algorithm implements Runnable{
 							ObjectOutputStream out = null;
 							out = new ObjectOutputStream(socket.getOutputStream());
 							MessageStruct ms = null;
-							if(checkMyRequestExist()==true)
+							/*if(checkMyRequestExist()==true)
 							{
-								ms=new MessageStruct("request-response",NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
+								ms=new MessageStruct(2,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
 							}
 							else
-							{
-								ms=new MessageStruct("response",NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
-							}
+							{*/
+								ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
+							//}
 							out.writeObject(ms);
 				           	out.flush();
 				           	out.close();
@@ -127,21 +127,25 @@ public class Algorithm implements Runnable{
 		         }
 			});
 			t.start();	
+			cs_queue.remove(currentProcessingRequest);
+			cs_handler();
 		}
 		else
 		{
-			if(checkKeys()==true)
-			{
-				synchronized(cs_flag){
-					cs_flag="enabled";
-				}			
-				cs_queue.remove(currentProcessingRequest);
-				// execute critical section
-			}
-			else
-			{
-				synchronized(cs_flag)
+			synchronized(cs_flag){
+				if(checkKeys()==true)
 				{
+						if(!cs_flag.equals("enabled"))
+						{						
+							cs_flag="enabled";									
+							cs_queue.remove(currentProcessingRequest);
+						// execute critical section
+						}
+						
+				}		
+				else
+				{
+				
 					if(cs_flag=="disabled")
 					{
 						cs_flag="wait";
@@ -159,7 +163,7 @@ public class Algorithm implements Runnable{
 												socket=new Socket(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]));
 												ObjectOutputStream out = null;
 												out = new ObjectOutputStream(socket.getOutputStream());
-												MessageStruct ms=new MessageStruct("request",NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),"");
+												MessageStruct ms=new MessageStruct(0,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),"");
 									           	out.writeObject(ms);
 									           	out.flush();
 									           	out.close();
@@ -180,6 +184,7 @@ public class Algorithm implements Runnable{
 							}
 						}
 					}
+					cs_handler();
 				}
 			}
 		}

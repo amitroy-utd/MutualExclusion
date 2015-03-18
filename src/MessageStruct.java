@@ -5,14 +5,14 @@ class MessageStruct implements Serializable
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	String msgType;
+	int msgType;
     int nodeid ;
     long timestamp;
     String key;
     
     
 
-    public  MessageStruct( String msgType, int nodeid, long timestamp,String key)
+    public  MessageStruct( int msgType, int nodeid, long timestamp,String key)
     {
         this.nodeid=nodeid;
        this.msgType=msgType;
