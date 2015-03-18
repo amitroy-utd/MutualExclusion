@@ -9,6 +9,7 @@ public class Algorithm implements Runnable{
 	public static int NodeID=0;
 	public static String cs_flag="disabled";
 	static Socket socket = null;
+	static int cs_handler_call_flag=0;
 	
 
 	public void getNodeInfoFromFile(int nodeId, String topologyFile)
@@ -102,14 +103,7 @@ public class Algorithm implements Runnable{
 							ObjectOutputStream out = null;
 							out = new ObjectOutputStream(socket.getOutputStream());
 							MessageStruct ms = null;
-							/*if(checkMyRequestExist()==true)
-							{
-								ms=new MessageStruct(2,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
-							}
-							else
-							{*/
-								ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
-							//}
+							ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
 							out.writeObject(ms);
 				           	out.flush();
 				           	out.close();
@@ -139,13 +133,20 @@ public class Algorithm implements Runnable{
 						{						
 							cs_flag="enabled";									
 							cs_queue.remove(currentProcessingRequest);
-						// execute critical section
+							// execute critical section
+							Thread t = new Thread(new Runnable() {
+						         public void run()
+						         {
+						        	 Application ap=new Application();						     		
+						     		 ap.cs_execute();
+						     		 cs_leave();
+						         }
+							});
+							t.start();
 						}
-						
 				}		
 				else
 				{
-				
 					if(cs_flag=="disabled")
 					{
 						cs_flag="wait";
@@ -188,6 +189,10 @@ public class Algorithm implements Runnable{
 				}
 			}
 		}
+		if(cs_queue.size()==0)
+		{
+			cs_handler_call_flag=0;
+		}
 	}
 	public static void cs_enter()
 	{
@@ -195,15 +200,19 @@ public class Algorithm implements Runnable{
 		cs_queue.put(timestamp+"_"+NodeID,Integer.toString(NodeID)); //""+NodeID+""
 		synchronized(cs_flag)
 		{
-			if(cs_flag=="disabled")
+			if(cs_handler_call_flag==0)
 			{
-				Thread t = new Thread(new Runnable() {
-			         public void run()
-			         {
-			        	 cs_handler();
-			         }
-				});
-				t.start();
+				if(cs_flag=="disabled")
+				{
+					cs_handler_call_flag=1;
+					Thread t = new Thread(new Runnable() {
+				         public void run()
+				         {
+				        	 cs_handler();
+				         }
+					});
+					t.start();
+				}
 			}
 		}
 	}
