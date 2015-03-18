@@ -139,7 +139,7 @@ public class Algorithm implements Runnable{
 					}		
 					else
 					{
-						if(cs_flag=="disabled")
+						if(cs_flag.equals("disabled"))
 						{
 							cs_flag="wait";
 							for (Map.Entry<Integer, String> entry : map.entrySet())
@@ -192,8 +192,7 @@ public class Algorithm implements Runnable{
 	public static void cs_leave()
 	{
 		cs_flag="disabled";		
-		cs_handler();
-		 		 
+		cs_handler();		 		 
 	}
 	public void run(){
 		
