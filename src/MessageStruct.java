@@ -8,7 +8,7 @@ class MessageStruct implements Serializable
 	int msgType;
     int nodeid ;
     long timestamp;
-    String key;
+    String Keys;
     
     
 
@@ -17,7 +17,7 @@ class MessageStruct implements Serializable
         this.nodeid=nodeid;
        this.msgType=msgType;
        this.timestamp=timestamp;
-       this.key=key;
+       this.Keys=key;
     }
 
    

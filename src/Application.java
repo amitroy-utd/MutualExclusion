@@ -33,9 +33,33 @@ public class Application {
 		}
 	}
 	
-	public void call_cs_enter()
+	public void call_cs_enter() throws InterruptedException
 	{
 		// execute according to read information
+		readNodeCSDetails(Project2.CurrentNodeId, Project2.topology);
+		for (int i=0;i<cs_max_request;i++)
+		{
+			long start_timestamp=System.currentTimeMillis();
+			Algorithm.cs_enter();
+			//check if flag is enabled 
+			cs_execute();
+			long end_timestamp=System.currentTimeMillis();
+			long diff = end_timestamp - start_timestamp;
+			
+			long diffSeconds = diff / 1000 % 60;
+			// if the difference is less than cs_request_delay then sleep for the diff
+			if (diffSeconds < cs_request_delay)
+			{
+				//sleep before making the second round
+				Thread.sleep((cs_request_delay - diffSeconds)*1000);
+				
+			}
+			else
+			{
+				//make the second cs request
+			}
+		}
+		
 	}
 	
 	public void cs_execute()
@@ -44,10 +68,10 @@ public class Application {
 		Algorithm.cs_leave();
 	}
 	
-	public static void main(String []args)
-	{
-		Application ap=new Application();
-		ap.readNodeCSDetails(1, "topology.txt");
-		ap.cs_execute();
-	}
+	//public static void main(String []args)
+	//{
+		//Application ap=new Application();
+		//ap.readNodeCSDetails(1, "topology.txt");
+		//ap.cs_execute();
+	//}
 }

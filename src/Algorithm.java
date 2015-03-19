@@ -10,6 +10,7 @@ public class Algorithm implements Runnable{
 	public static String cs_flag="disabled";
 	static Socket socket = null;
 	static int cs_handler_call_flag=0;
+	static String currentProcessingRequest="";
 	
 
 	public void getNodeInfoFromFile(int nodeId, String topologyFile)
@@ -61,11 +62,7 @@ public class Algorithm implements Runnable{
 	{
 		return map.get(nodeID);
 	}
-	public static void main(String []args)
-	{
-		Algorithm al=new Algorithm();
-		al.getNodeInfoFromFile(1, "topology.txt");		
-	}
+	
 	public static boolean checkKeys()
 	{
 		if(shared_keys.size()==(map.size()-1))
@@ -87,55 +84,77 @@ public class Algorithm implements Runnable{
 		}
 		return false;
 	}
-	public static void cs_handler() 
+	public static void cs_handler_other() 
 	{
-		if(cs_queue.size()!=0)
+		while(true)
 		{
-			Map.Entry<String, String> entry_1 = ((TreeMap<String, String>) cs_queue).firstEntry();
-			final String currentProcessingRequest=entry_1.getKey();	
-			if(Integer.parseInt(currentProcessingRequest.split("_")[1])!=NodeID)
+			if(cs_queue.size()!=0)
 			{
-				final int requesting_node=Integer.parseInt(currentProcessingRequest.split("_")[1]);
-				Thread t = new Thread(new Runnable() {
-			         public void run()
-			         {
-			        	 String []nodeNetInfo=map.get(requesting_node).split(":");
-							try {
-								socket=new Socket(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]));
-								ObjectOutputStream out = null;
-								out = new ObjectOutputStream(socket.getOutputStream());
-								MessageStruct ms = null;
-								ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),shared_keys.get(requesting_node));
-								out.writeObject(ms);
-					           	out.flush();
-					           	out.close();
-					           	socket.close();
-							} catch (NumberFormatException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (UnknownHostException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}									
-			         }
-				});
-				t.start();	
-				cs_queue.remove(currentProcessingRequest);
-				cs_handler();
+				synchronized(cs_flag)
+				{
+					if(cs_flag.equals("disabled"))
+					{
+						Map.Entry<String, String> entry_1 = cs_queue.entrySet().iterator().next();
+						final String currentProcessingRequest1=entry_1.getKey();	
+						if(Integer.parseInt(currentProcessingRequest1.split("_")[1])!=NodeID)
+						{
+							//cs_flag="";
+							final int requesting_node=Integer.parseInt(currentProcessingRequest1.split("_")[1]);
+							Thread t = new Thread(new Runnable() {
+						         public void run()
+						         {
+						        	 String []nodeNetInfo=map.get(requesting_node).split(":");
+										try {
+											socket=new Socket(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]));
+											ObjectOutputStream out = null;
+											out = new ObjectOutputStream(socket.getOutputStream());
+											MessageStruct ms = null;
+											ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest1.split("_")[0]),shared_keys.get(requesting_node));
+											out.writeObject(ms);
+								           	out.flush();
+								           	out.close();
+								           	socket.close();
+										} catch (NumberFormatException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										} catch (UnknownHostException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										} catch (IOException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}									
+						         }
+							});
+							t.start();	
+							cs_queue.remove(currentProcessingRequest1);
+							
+						}
+					}
+				}
 			}
-			else
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	public static void cs_handler_own() 
+	{
+		while(true)
+		{
+			Map.Entry<String, String> entry_1 = cs_queue.entrySet().iterator().next();
+			currentProcessingRequest=entry_1.getKey();
+			if(Integer.parseInt(currentProcessingRequest.split("_")[1])==NodeID)
 			{
 				synchronized(cs_flag){
 					if(checkKeys()==true)
-					{
-							if(!cs_flag.equals("enabled"))
-							{						
-								cs_flag="enabled";									
-								cs_queue.remove(currentProcessingRequest);								
-							}
+					{					
+						cs_flag="enabled";									
+						return;							
 					}		
 					else
 					{
@@ -177,22 +196,30 @@ public class Algorithm implements Runnable{
 								}
 							}
 						}
-						cs_handler();
+						
 					}
 				}
 			}
-		}		
-	}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}				
+	
 	public static void cs_enter()
 	{
 		long timestamp=System.currentTimeMillis();		
 		cs_queue.put(timestamp+"_"+NodeID,Integer.toString(NodeID)); //""+NodeID+""
-		cs_handler();						
+		cs_handler_own();						
 	}
 	public static void cs_leave()
 	{
-		cs_flag="disabled";		
-		cs_handler();		 		 
+		cs_flag="disabled";	
+		cs_queue.remove(currentProcessingRequest);
+			 		 
 	}
 	public void run(){
 		
