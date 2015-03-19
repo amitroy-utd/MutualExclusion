@@ -128,6 +128,7 @@ public class Algorithm implements Runnable{
 							});
 							t.start();	
 							cs_queue.remove(currentProcessingRequest1);
+							System.out.println("In cs_handler_other="+ currentProcessingRequest1);
 							
 						}
 					}
@@ -213,12 +214,14 @@ public class Algorithm implements Runnable{
 	{
 		long timestamp=System.currentTimeMillis();		
 		cs_queue.put(timestamp+"_"+NodeID,Integer.toString(NodeID)); //""+NodeID+""
+		System.out.println("In cs_enter==="+timestamp+"_"+NodeID+"  "+Integer.toString(NodeID));
 		cs_handler_own();						
 	}
 	public static void cs_leave()
 	{
 		cs_flag="disabled";	
 		cs_queue.remove(currentProcessingRequest);
+		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
 			 		 
 	}
 	public void run(){

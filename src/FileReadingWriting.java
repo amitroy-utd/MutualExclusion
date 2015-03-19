@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Map;
 
 public class FileReadingWriting {
 	
@@ -26,6 +27,14 @@ public class FileReadingWriting {
 	        	FileWriter fw = new FileWriter(f.getAbsoluteFile(),true);
 	 			BufferedWriter bw = new BufferedWriter(fw);
 	 			bw.write("\nNode id:"+nodeid+" Start Timestamp:"+start_timestamp);
+	 			String key_str="  ";
+	 			for (Map.Entry<Integer, String> entry : Algorithm.shared_keys.entrySet())
+				{
+					Integer key = entry.getKey();
+					String value = entry.getValue();
+					key_str.concat(key + " => " + value).concat("   ");
+				}
+	 			bw.write("keys="+key_str);
 	 			Thread.sleep(cs_exec_duration*1000);
 	 			long stop_timestamp=System.currentTimeMillis();
 	 			bw.write("\nNode id:"+nodeid+" End Timestamp:"+stop_timestamp);

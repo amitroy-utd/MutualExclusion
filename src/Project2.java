@@ -37,6 +37,7 @@ public class Project2 {
             @Override
             public void run() {
                 Algorithm.cs_handler_other();
+                System.out.println("Starting cs_handler_other thread");
             }
         };
         Thread handlerThread = new Thread(cshandlerothertask);
@@ -45,7 +46,8 @@ public class Project2 {
         // once it comes to this line it means all servers are up
         Application app = new Application();
 		app.call_cs_enter();
-        
+		System.out.println("Calling cs_enter");
+		System.out.println("application end");
         
 		
 	}// end of main
