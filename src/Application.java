@@ -15,7 +15,8 @@ public class Application {
 			String line = "";
 			while((line=br.readLine())!=null)
 			{
-				String data[] = line.split(" ");
+				
+				String data[] = line.split("\\|");
 				if(nodeId==Integer.parseInt(data[0]));
 				{
 					cs_max_request=Integer.parseInt(data[2]);

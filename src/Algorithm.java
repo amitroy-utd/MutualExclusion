@@ -23,16 +23,21 @@ public class Algorithm implements Runnable{
 			String line = "";
 			while((line=br.readLine())!=null)
 			{
-				String data[] = line.split(" ");
+				System.out.println("line="+line);
+				String data[] = line.split("\\|");
 				map.put(Integer.parseInt(data[0]),data[1]);	
+				System.out.println("data length="+data.length+"node id="+nodeId);
 				if(data.length==6)
 				{
-					if(nodeId==Integer.parseInt(data[0]));
+					System.out.println("data[5]="+data[5]+"======"+nodeId+"=="+data[0]);
+					if(nodeId==Integer.parseInt(data[0]))
 					{
 						String []key_arr=data[5].split(":");
+						//System.out.println("key arr is:"+key_arr.toString());
 						for(int i=0;i<key_arr.length;i++)
 						{
 							String []keys=key_arr[i].split(",");
+							//System.out.println("keys is"+keys.toString());
 							if(Integer.parseInt(keys[0])!=nodeId && Integer.parseInt(keys[1])==nodeId)
 							{
 								shared_keys.put(Integer.parseInt(keys[0]), key_arr[i]);
@@ -46,7 +51,7 @@ public class Algorithm implements Runnable{
 				}				
 			}
 			br.close();
-			for (Map.Entry<Integer, String> entry : map.entrySet())
+			for (Map.Entry<Integer, String> entry : shared_keys.entrySet())
 			{
 				Integer key = entry.getKey();
 				String value = entry.getValue();

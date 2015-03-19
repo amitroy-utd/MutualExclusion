@@ -36,8 +36,9 @@ public class Project2 {
         Runnable cshandlerothertask = new Runnable() {
             @Override
             public void run() {
+            	System.out.println("Starting cs_handler_other thread");
                 Algorithm.cs_handler_other();
-                System.out.println("Starting cs_handler_other thread");
+                
             }
         };
         Thread handlerThread = new Thread(cshandlerothertask);
