@@ -118,7 +118,7 @@ public class Algorithm implements Runnable{
 											out.writeObject(ms);
 								           	out.flush();
 								           	out.close();
-								           	socket.close();
+								           	//socket.close();
 										} catch (NumberFormatException e) {
 											// TODO Auto-generated catch block
 											e.printStackTrace();
@@ -185,7 +185,7 @@ public class Algorithm implements Runnable{
 										           	out.writeObject(ms);
 										           	out.flush();
 										           	out.close();
-										           	socket.close();
+										      //     	socket.close();
 												} catch (NumberFormatException e) {
 													// TODO Auto-generated catch block
 													e.printStackTrace();
