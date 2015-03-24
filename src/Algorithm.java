@@ -2,7 +2,11 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
-public class Algorithm implements Runnable{
+public class Algorithm implements Runnable ,Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static Map<Integer, String> map=Collections.synchronizedMap(new TreeMap<Integer, String>());	
 	public static Map<String, String> cs_queue=Collections.synchronizedMap(new TreeMap<String, String>());
 	public static Map<Integer, String> shared_keys=Collections.synchronizedMap(new TreeMap<Integer, String>());	
@@ -23,21 +27,20 @@ public class Algorithm implements Runnable{
 			String line = "";
 			while((line=br.readLine())!=null)
 			{
-				System.out.println("line="+line);
-				String data[] = line.split("\\|");
+				//System.out.println("lineis:"+line);
+				String data[] = line.split(" ");
 				map.put(Integer.parseInt(data[0]),data[1]);	
-				System.out.println("data length="+data.length+"node id="+nodeId);
+				//System.out.println(Integer.parseInt(data[0])+"ll"+data[1]);
+				//System.out.println("data length"+ data.length);
 				if(data.length==6)
 				{
-					System.out.println("data[5]="+data[5]+"======"+nodeId+"=="+data[0]);
 					if(nodeId==Integer.parseInt(data[0]))
 					{
+						//System.out.println("inside data "+ Integer.parseInt(data[0]) +"node id is"+nodeId);
 						String []key_arr=data[5].split(":");
-						//System.out.println("key arr is:"+key_arr.toString());
 						for(int i=0;i<key_arr.length;i++)
 						{
 							String []keys=key_arr[i].split(",");
-							//System.out.println("keys is"+keys.toString());
 							if(Integer.parseInt(keys[0])!=nodeId && Integer.parseInt(keys[1])==nodeId)
 							{
 								shared_keys.put(Integer.parseInt(keys[0]), key_arr[i]);
@@ -72,6 +75,13 @@ public class Algorithm implements Runnable{
 	{
 		if(shared_keys.size()==(map.size()-1))
 		{
+			System.out.println("Shared key size is"+shared_keys.size());
+			for (Map.Entry<Integer, String> entry : shared_keys.entrySet())
+			{
+				Integer key = entry.getKey();
+				String value = entry.getValue();
+				System.out.println( "shared keys all present"+ key + " => " + value);
+			}
 			return true;
 		}
 		return false;
@@ -104,35 +114,25 @@ public class Algorithm implements Runnable{
 						if(Integer.parseInt(currentProcessingRequest1.split("_")[1])!=NodeID)
 						{
 							//cs_flag="";
+							System.out.println("sending response to "+ Integer.parseInt(currentProcessingRequest1.split("_")[1]));
 							final int requesting_node=Integer.parseInt(currentProcessingRequest1.split("_")[1]);
-							Thread t = new Thread(new Runnable() {
-						         public void run()
-						         {
-						        	 String []nodeNetInfo=map.get(requesting_node).split(":");
-										try {
-											socket=new Socket(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]));
-											ObjectOutputStream out = null;
-											out = new ObjectOutputStream(socket.getOutputStream());
-											MessageStruct ms = null;
-											ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest1.split("_")[0]),shared_keys.get(requesting_node));
-											out.writeObject(ms);
-								           	out.flush();
-								           	out.close();
-								           	//socket.close();
-										} catch (NumberFormatException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
-										} catch (UnknownHostException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
-										} catch (IOException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
-										}									
-						         }
-							});
-							t.start();	
+							String []nodeNetInfo=map.get(requesting_node).split(":");
+				        	 String keysToSend = shared_keys.get(requesting_node);
+							
+				        	 try {
+						        	//System.out.println("starting client");
+					            	MessageStruct ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest1.split("_")[0]),keysToSend);
+									new ClientDemo().startClient(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]),ms);
+									shared_keys.remove(requesting_node);
+								} catch (Exception e) {
+									System.out.println("Something falied: " + e.getMessage());
+									e.printStackTrace();
+								}
+								
+				         
+								
 							cs_queue.remove(currentProcessingRequest1);
+							System.out.println("removed from queue");
 							System.out.println("In cs_handler_other="+ currentProcessingRequest1);
 							
 						}
@@ -141,7 +141,9 @@ public class Algorithm implements Runnable{
 			}
 			
 			try {
+				//System.out.println("going to sleep");
 				Thread.sleep(1000);
+				//System.out.println("woke up");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -158,7 +160,9 @@ public class Algorithm implements Runnable{
 			{
 				synchronized(cs_flag){
 					if(checkKeys()==true)
-					{					
+					{	
+						System.out.println("critical section executing");	
+						
 						cs_flag="enabled";									
 						return;							
 					}		
@@ -166,6 +170,7 @@ public class Algorithm implements Runnable{
 					{
 						if(cs_flag.equals("disabled"))
 						{
+							System.out.println("in wait");
 							cs_flag="wait";
 							for (Map.Entry<Integer, String> entry : map.entrySet())
 							{
@@ -173,32 +178,18 @@ public class Algorithm implements Runnable{
 								final String value = entry.getValue();					
 								if(key!=NodeID && shared_keys.containsKey(key)==false)
 								{
-									Thread t = new Thread(new Runnable() {
-								         public void run()
-								         {
-								        	 String []nodeNetInfo=value.split(":");
-												try {
-													socket=new Socket(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]));
-													ObjectOutputStream out = null;
-													out = new ObjectOutputStream(socket.getOutputStream());
-													MessageStruct ms=new MessageStruct(0,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),"");
-										           	out.writeObject(ms);
-										           	out.flush();
-										           	out.close();
-										      //     	socket.close();
-												} catch (NumberFormatException e) {
-													// TODO Auto-generated catch block
-													e.printStackTrace();
-												} catch (UnknownHostException e) {
-													// TODO Auto-generated catch block
-													e.printStackTrace();
-												} catch (IOException e) {
-													// TODO Auto-generated catch block
-													e.printStackTrace();
-												}									
-								         }
-									});
-									t.start();						
+									System.out.println("sending request to: "+key);
+									      	 String []nodeNetInfo=value.split(":");
+												
+										            try {
+											        	//System.out.println("starting client");
+										            	MessageStruct ms=new MessageStruct(0,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),"");
+														new ClientDemo().startClient(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]),ms);
+													} catch (Exception e) {
+														System.out.println("Something falied: " + e.getMessage());
+														e.printStackTrace();
+													}
+									       											
 								}
 							}
 						}
@@ -207,7 +198,9 @@ public class Algorithm implements Runnable{
 				}
 			}
 			try {
+				//System.out.println("going to sleep");
 				Thread.sleep(1000);
+				//System.out.println("waking up");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -220,7 +213,14 @@ public class Algorithm implements Runnable{
 		long timestamp=System.currentTimeMillis();		
 		cs_queue.put(timestamp+"_"+NodeID,Integer.toString(NodeID)); //""+NodeID+""
 		System.out.println("In cs_enter==="+timestamp+"_"+NodeID+"  "+Integer.toString(NodeID));
-		cs_handler_own();						
+		cs_handler_own();					
+		for (Map.Entry<Integer, String> entry : shared_keys.entrySet())
+		{
+			Integer key = entry.getKey();
+			String value = entry.getValue();
+			System.out.println( "shared keys when flag is enabled:"+ key + " => " + value);
+		}
+		return;
 	}
 	public static void cs_leave()
 	{

@@ -1,13 +1,12 @@
 import java.io.*;
 import java.util.Map;
 
-public class FileReadingWriting {
+public class FileReadingWriting implements Serializable {
 	
    public static void CreateWriteFile(int nodeid, String content, String filename,int cs_exec_duration)
    {
 	   
 	      File f = null;
-	      boolean bool = false;
 	      long start_timestamp=System.currentTimeMillis();
 	      
 	      content="\n"+content;
@@ -19,7 +18,6 @@ public class FileReadingWriting {
 	         // tries to create new file in the system
 	         if(!f.exists())
 	         {
-	        	 bool = f.createNewFile();
 	         }
 	       
 	         //System.out.println("File created: "+bool);
@@ -32,7 +30,8 @@ public class FileReadingWriting {
 				{
 					Integer key = entry.getKey();
 					String value = entry.getValue();
-					key_str.concat(key + " => " + value).concat("   ");
+					System.out.println("in File application key ===" +key+ "values"+value);
+					key_str = key_str.concat(key + " => " + value).concat("   ");
 				}
 	 			bw.write("keys="+key_str);
 	 			Thread.sleep(cs_exec_duration*1000);
