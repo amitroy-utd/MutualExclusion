@@ -80,7 +80,7 @@ public class Application implements Serializable {
 	
 	public void cs_execute()
 	{
-		FileReadingWriting.CreateWriteFile(NodeID, "", "C:\\Users\\sharethramh\\aos_cs.txt", cs_exec_duration);
+		FileReadingWriting.CreateWriteFile(NodeID, "", "aos_cs.txt", cs_exec_duration);
 		Algorithm.cs_leave();
 	}
 	

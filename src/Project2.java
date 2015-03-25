@@ -73,7 +73,7 @@ public class Project2 implements Serializable {
 		int i=0;
 		while(true)
 		{
-			++i;
+			//++i;
 			if (treemap.isEmpty() && i<1000)
 			{
 				//call the logic because all the servers are up and running 
@@ -81,15 +81,16 @@ public class Project2 implements Serializable {
 				//break out of the loop
 				break;
 			}
-			else if(i>=1000)
+			/*else if(i>=1000)
 			{
+				System.out.println("Exiting because some servers are not up.....");
 				System.exit(0);
 			}
-			
+			*/
 			for (Map.Entry<Integer, String> entry : origTreemap.entrySet())
 		    {
 				boolean remove_entry=false;
-				System.out.println("key is "+entry.getKey());
+				System.out.println("curruent is "+entry.getKey());
 				if (treemap.containsKey(entry.getKey()))
 				{
 					System.out.println(entry.getKey()+ "is present in treemap");
