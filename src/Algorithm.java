@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
-public class Algorithm implements Runnable ,Serializable{
+public class Algorithm {
 	/**
 	 * 
 	 */
@@ -245,8 +245,4 @@ public class Algorithm implements Runnable ,Serializable{
 		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
 			 		 
 	}
-	public void run(){
-		
-	}
-	
 }

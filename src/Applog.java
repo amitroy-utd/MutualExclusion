@@ -11,7 +11,7 @@ public class Applog {
 		try
 		{
 			// create new file
-			f = new File(nodeid+".txt");
+			f = new File(Integer.toString(nodeid)+".txt");
 
 			// tries to create new file in the system
 			if(!f.exists())
