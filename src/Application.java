@@ -72,7 +72,7 @@ public class Application implements Serializable {
 			{
 				//make the second cs request
 			}*/
-			Thread.sleep((cs_request_delay)*1000);
+			Thread.sleep(cs_request_delay);
 		}
 		System.out.println("i is" +i);
 		

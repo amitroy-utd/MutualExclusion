@@ -70,14 +70,20 @@ public class Project2 implements Serializable {
 	public static void check_all_servers() throws IOException
 	{
 		copyList();
+		int i=0;
 		while(true)
 		{
-			if (treemap.isEmpty())
+			++i;
+			if (treemap.isEmpty() && i<1000)
 			{
 				//call the logic because all the servers are up and running 
 				System.out.println("all servers up continuing....");
 				//break out of the loop
 				break;
+			}
+			else if(i>=1000)
+			{
+				System.exit(0);
 			}
 			
 			for (Map.Entry<Integer, String> entry : origTreemap.entrySet())

@@ -34,7 +34,7 @@ public class FileReadingWriting implements Serializable {
 					key_str = key_str.concat(key + " => " + value).concat("   ");
 				}
 	 			bw.write("keys="+key_str);
-	 			Thread.sleep(cs_exec_duration*1000);
+	 			Thread.sleep(cs_exec_duration);
 	 			long stop_timestamp=System.currentTimeMillis();
 	 			bw.write("\nNode id:"+nodeid+" End Timestamp:"+stop_timestamp);
 	 			bw.close();         

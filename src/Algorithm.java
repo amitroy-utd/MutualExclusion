@@ -161,9 +161,17 @@ public class Algorithm implements Runnable ,Serializable{
 				synchronized(cs_flag){
 					if(checkKeys()==true)
 					{	
-						System.out.println("critical section executing");	
-						
-						cs_flag="enabled";									
+						System.out.println("critical section executing");						
+						cs_flag="enabled";	
+						Thread t = new Thread(new Runnable() {
+								public void run()
+								{
+									Applog.CreateWriteFile(NodeID, "start");
+								
+								}
+							});
+						t.start(); 
+						    
 						return;							
 					}		
 					else
@@ -225,6 +233,14 @@ public class Algorithm implements Runnable ,Serializable{
 	public static void cs_leave()
 	{
 		cs_flag="disabled";	
+		Thread t = new Thread(new Runnable() {
+			public void run()
+			{
+				Applog.CreateWriteFile(NodeID, "end");
+			
+			}
+		});
+		t.start(); 
 		cs_queue.remove(currentProcessingRequest);
 		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
 			 		 
