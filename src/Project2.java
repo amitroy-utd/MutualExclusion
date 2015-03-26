@@ -85,10 +85,10 @@ public class Project2 implements Serializable {
 			for (Map.Entry<Integer, String> entry : origTreemap.entrySet())
 		    {
 				boolean remove_entry=false;
-				System.out.println("curruent is "+entry.getKey());
+				//System.out.println("curruent is "+entry.getKey());
 				if (treemap.containsKey(entry.getKey()))
 				{
-					System.out.println(entry.getKey()+ "is present in treemap");
+					//System.out.println(entry.getKey()+ "is present in treemap");
 					//establish a socket
 					String []nodeNetInfo=entry.getValue().split(":");
 					try
@@ -111,7 +111,7 @@ public class Project2 implements Serializable {
 					catch (Exception e)
 					{
 						//ignore exception
-						System.out.println("exception is "+e.getMessage());
+						//System.out.println("exception is "+e.getMessage());
 						//socket1.close();
 						
 					}

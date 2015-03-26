@@ -8,13 +8,13 @@ public class Algorithm {
 	 */
 	private static final long serialVersionUID = 1L;
 	public static Map<Integer, String> map=Collections.synchronizedMap(new TreeMap<Integer, String>());	
-	public static Map<String, String> cs_queue=Collections.synchronizedMap(new TreeMap<String, String>());
+	public static Map<Long, String> cs_queue=Collections.synchronizedMap(new TreeMap<Long, String>());
 	public static Map<Integer, String> shared_keys=Collections.synchronizedMap(new TreeMap<Integer, String>());	
 	public static int NodeID=0;
 	public static String cs_flag="disabled";
 	static Socket socket = null;
 	static int cs_handler_call_flag=0;
-	static String currentProcessingRequest="";
+	static long currentProcessingRequest;
 	
 
 	public void getNodeInfoFromFile(int nodeId, String topologyFile)
@@ -88,7 +88,7 @@ public class Algorithm {
 	}
 	public static boolean checkMyRequestExist()
 	{
-		Collection<String> collectionString = ((TreeMap<String, String>) cs_queue).values();
+		Collection<String> collectionString = ((TreeMap<Long, String>) cs_queue).values();
 		for (Object o : collectionString)
 		{
 			if(Integer.parseInt(o.toString())==NodeID)
@@ -109,19 +109,20 @@ public class Algorithm {
 				{
 					if(cs_flag.equals("disabled"))
 					{
-						Map.Entry<String, String> entry_1 = cs_queue.entrySet().iterator().next();
-						final String currentProcessingRequest1=entry_1.getKey();	
-						if(Integer.parseInt(currentProcessingRequest1.split("_")[1])!=NodeID)
+						Map.Entry<Long, String> entry_1 = cs_queue.entrySet().iterator().next();
+						final Long currentProcessingRequest1=entry_1.getKey();
+						final String currentProcessingRequest1_nodeid=entry_1.getValue();
+						if(Integer.parseInt(currentProcessingRequest1_nodeid)!=NodeID)
 						{
 							//cs_flag="";
-							System.out.println("sending response to "+ Integer.parseInt(currentProcessingRequest1.split("_")[1]));
-							final int requesting_node=Integer.parseInt(currentProcessingRequest1.split("_")[1]);
+							System.out.println("sending response to "+ Integer.parseInt(currentProcessingRequest1_nodeid));
+							final int requesting_node=Integer.parseInt(currentProcessingRequest1_nodeid);
 							String []nodeNetInfo=map.get(requesting_node).split(":");
 				        	 String keysToSend = shared_keys.get(requesting_node);
 							
 				        	 try {
 						        	//System.out.println("starting client");
-					            	MessageStruct ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest1.split("_")[0]),keysToSend);
+					            	MessageStruct ms=new MessageStruct(1,NodeID,0,keysToSend);
 									new ClientDemo().startClient(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]),ms);
 									shared_keys.remove(requesting_node);
 								} catch (Exception e) {
@@ -154,23 +155,24 @@ public class Algorithm {
 	{
 		while(true)
 		{
-			Map.Entry<String, String> entry_1 = cs_queue.entrySet().iterator().next();
+			Map.Entry<Long, String> entry_1 = cs_queue.entrySet().iterator().next();
 			currentProcessingRequest=entry_1.getKey();
-			if(Integer.parseInt(currentProcessingRequest.split("_")[1])==NodeID)
+			final String currentProcessingRequest_nodeid=entry_1.getValue();
+			if(Integer.parseInt(currentProcessingRequest_nodeid)==NodeID)
 			{
 				synchronized(cs_flag){
 					if(checkKeys()==true)
 					{	
 						System.out.println("critical section executing");						
 						cs_flag="enabled";	
-						Thread t = new Thread(new Runnable() {
+						/*Thread t = new Thread(new Runnable() {
 								public void run()
 								{
 									Applog.CreateWriteFile(NodeID, "start");
 								
 								}
 							});
-						t.start(); 
+						t.start(); */
 						    
 						return;							
 					}		
@@ -191,7 +193,7 @@ public class Algorithm {
 												
 										            try {
 											        	//System.out.println("starting client");
-										            	MessageStruct ms=new MessageStruct(0,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),"");
+										            	MessageStruct ms=new MessageStruct(0,NodeID,getTimeStamp(currentProcessingRequest, currentProcessingRequest_nodeid),"");
 														new ClientDemo().startClient(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]),ms);
 													} catch (Exception e) {
 														System.out.println("Something falied: " + e.getMessage());
@@ -219,7 +221,7 @@ public class Algorithm {
 	public static void cs_enter()
 	{
 		long timestamp=System.currentTimeMillis();		
-		cs_queue.put(timestamp+"_"+NodeID,Integer.toString(NodeID)); //""+NodeID+""
+		cs_queue.put(getQueueKey(timestamp, Integer.toString(NodeID)),Integer.toString(NodeID)); //""+NodeID+""
 		System.out.println("In cs_enter==="+timestamp+"_"+NodeID+"  "+Integer.toString(NodeID));
 		cs_handler_own();					
 		for (Map.Entry<Integer, String> entry : shared_keys.entrySet())
@@ -233,16 +235,29 @@ public class Algorithm {
 	public static void cs_leave()
 	{
 		cs_flag="disabled";	
-		Thread t = new Thread(new Runnable() {
+		/*Thread t = new Thread(new Runnable() {
 			public void run()
 			{
 				Applog.CreateWriteFile(NodeID, "end");
 			
 			}
 		});
-		t.start(); 
+		t.start(); */
 		cs_queue.remove(currentProcessingRequest);
 		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
 			 		 
+	}
+	public static long getTimeStamp(long timestampkey,String nodeid)
+	{
+		int timestampkey_length = (int) Math.log10(timestampkey) + 1;
+		int nodeid_length=nodeid.length();
+		int timestamp_length=timestampkey_length-nodeid_length;
+		String timestamp=Long.toString(timestampkey).substring(0, timestamp_length);
+		return Long.parseLong(timestamp);
+	}
+	public static long getQueueKey(long timestamp,String nodeid)
+	{
+		String timestampkey=Long.toString(timestamp)+nodeid;
+		return Long.parseLong(timestampkey);
 	}
 }
