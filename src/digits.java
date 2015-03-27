@@ -1,31 +1,44 @@
 import java.util.Collections;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+
 
 
 public class digits {
-	public static long getTimeStamp(long timestampkey,String nodeid)
-	{
-		//Long newnumlong = Long.parseLong(newnum);
-		int timestampkey_length = (int) Math.log10(timestampkey) + 1;
-		int nodeid_length=nodeid.length();
-		int timestamp_length=timestampkey_length-nodeid_length;
-		String timestamp=Long.toString(timestampkey).substring(0, timestamp_length);
-		return Long.parseLong(timestamp);
-	}
-	public static long getQueueKey(long timestamp,String nodeid)
-	{
-		String timestampkey=Long.toString(timestamp)+nodeid;
-		return Long.parseLong(timestampkey);
-	}
+	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		long timestamp = System.currentTimeMillis();
-		System.out.println("queue key is"+getQueueKey(timestamp,"10"));
-		System.out.println("queue key is"+getQueueKey(timestamp,"7"));
-		System.out.println("TimestAMP IS"+getTimeStamp(getQueueKey(timestamp,"7"),"7"));
+		List<String> cs_queue = Collections.synchronizedList(new LinkedList<String>());
+		long timestamp=System.currentTimeMillis();
+		cs_queue.add(Long.toString(timestamp)+"_"+1);
+		timestamp=System.currentTimeMillis();
+		cs_queue.add(Long.toString(timestamp)+"_"+3);
+		timestamp=System.currentTimeMillis();
+		cs_queue.add(Long.toString(timestamp)+"_"+10);
+		timestamp=System.currentTimeMillis();
+		cs_queue.add(Long.toString(timestamp)+"_"+2);
+		ListIterator<String> listIterator = cs_queue.listIterator();
+		while (listIterator.hasNext()) 
+		{ 
+			System.out.println(listIterator.next());
+		}
+		cs_queue.remove(Long.toString(timestamp)+"_"+1);
+		ListIterator<String> listIterator1 = cs_queue.listIterator();
+		while (listIterator1.hasNext()) 
+		{ 
+			System.out.println(listIterator1.next());
+		}
+		System.out.println("============="+cs_queue.get(0));
+		timestamp=System.currentTimeMillis();
+		cs_queue.add(Long.toString(timestamp)+"_"+6);
+		System.out.println("============="+cs_queue.get(cs_queue.size()-1));
+		
+		
+		
+		}
+		
 
 	}
 
-}
+

@@ -11,12 +11,13 @@ public class Server implements Serializable {
  
     ServerSocket myServerSocket;
     boolean ServerOn = true;
-  
+ 
+ 
     public Server(final int portnum) 
     { 
         try
         { 
-        	//System.out.println("In server");
+        	System.out.println("In server");
             myServerSocket = new ServerSocket(portnum); 
         } 
         catch(IOException ioe) 
@@ -112,13 +113,13 @@ public class Server implements Serializable {
             //Socket socket;
  
             // Print out details of this connection 
- //           System.out.println("Accepted Client "); 
+            System.out.println("Accepted Client "); 
  
             try
             {                                
             	in = new ObjectInputStream(myClientSocket.getInputStream());
 				Object obj = in.readObject();
-				//System.out.println("object is"+obj);
+				System.out.println("object is"+obj);
 				
 				MessageStruct msgrcvd = null;
                 
@@ -137,17 +138,16 @@ public class Server implements Serializable {
                     		case "enabled":
                     						System.out.println("request received when in enabled state");
                     						// put in queue because current node is in critical section
-                    						Algorithm.cs_queue.put(Algorithm.getQueueKey(msgrcvd.timestamp, Integer.toString(msgrcvd.nodeid)),Integer.toString(msgrcvd.nodeid)); //""+NodeID+""
+                    						Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
                     						break;
                     		case "wait":
                     						System.out.println("request received when in wait state");
-                    						Map.Entry<Long, String> entry1 = Algorithm.cs_queue.entrySet().iterator().next();
-                    						final Long currenttimestmpnode=entry1.getKey();	
-                    						final String currenttimestmpnode_nodeid=entry1.getValue();
+                    						final String currenttimestmpnode=Algorithm.cs_queue.get(0);	
+                    						
                     						//String key = Algorithm.cs_queue.;
                     						boolean ourPriority = false;
                     						
-                    						long timestamp = Algorithm.getTimeStamp(currenttimestmpnode, currenttimestmpnode_nodeid);
+                    						long timestamp = Long.parseLong(currenttimestmpnode.split("_")[0]);
                     						// check the timestamps and then nodeid
                     						//determine_priority();
                     						System.out.println("timestamp of rcvd node :"+msgrcvd.timestamp + " our node :"+ timestamp);
@@ -159,7 +159,7 @@ public class Server implements Serializable {
                     						else if (msgrcvd.timestamp == timestamp)
                     						{
                     							System.out.println("same timestamp");
-                    							if (msgrcvd.nodeid < Integer.parseInt(currenttimestmpnode_nodeid) )
+                    							if (msgrcvd.nodeid < Integer.parseInt(currenttimestmpnode.split("_")[1]) )
                     							{
                     								ourPriority = false;
                     								System.out.println("ourprio false");
@@ -177,7 +177,7 @@ public class Server implements Serializable {
                     						{
                     							//do not send the response keys, put in our queue
                     							System.out.println("our priority put in queue");
-                    							Algorithm.cs_queue.put(Algorithm.getQueueKey(msgrcvd.timestamp, Integer.toString(msgrcvd.nodeid)),Integer.toString(msgrcvd.nodeid)); //""+NodeID+""
+                    							Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
                         						
                     						}
                     						else // its not our priority
@@ -189,7 +189,7 @@ public class Server implements Serializable {
                     								String keysToSend1 = " ";
     			                    				keysToSend1=Algorithm.shared_keys.get(msgrcvd.nodeid);
                     								
-                    								MessageStruct ms = new MessageStruct(2,Project2.CurrentNodeId,Algorithm.getTimeStamp(currenttimestmpnode, currenttimestmpnode_nodeid),keysToSend1);
+                    								MessageStruct ms = new MessageStruct(2,Project2.CurrentNodeId,Long.parseLong(currenttimestmpnode.split("_")[0]),keysToSend1);
                     								// remove the keys from shared key
                         							System.out.println("remove from shared keys");
                         							Algorithm.shared_keys.remove(msgrcvd.nodeid);
@@ -255,12 +255,12 @@ public class Server implements Serializable {
                 	// chk for n-1 keys and call cs handler
                 	//put the request of the incoming node in the queue
                 	System.out.println("adding to queue");
-                	Algorithm.cs_queue.put(Algorithm.getQueueKey(msgrcvd.timestamp, Integer.toString(msgrcvd.nodeid)),Integer.toString(msgrcvd.nodeid)); //""+NodeID+""
+                	Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
                 	
                 }
                 else
                 {
-                	//System.out.println("connection check");
+                	System.out.println("connection check");
                 	
                 }
                 
