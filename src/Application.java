@@ -2,12 +2,14 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.Serializable;
 import java.util.Map;
+import org.apache.commons.math3.distribution.ExponentialDistribution;
 public class Application implements Serializable {
 	public  int NodeID;
 	public  int cs_max_request=0;
 	public  int cs_request_delay=0;
 	public  int cs_exec_duration=0;
 	int i;
+	
 	public void readNodeCSDetails(int nodeId, String topologyFile)
 	{
 		BufferedReader br;
@@ -42,6 +44,7 @@ public class Application implements Serializable {
 	{
 		// execute according to read information
 		readNodeCSDetails(Project2.CurrentNodeId, Project2.topology);
+		ExponentialDistribution ed=new ExponentialDistribution( cs_request_delay);
 		System.out.println("max req is "+cs_max_request);
 		for (i=0;i<cs_max_request;i++)
 		{
@@ -72,7 +75,7 @@ public class Application implements Serializable {
 			{
 				//make the second cs request
 			}*/
-			Thread.sleep(cs_request_delay);
+			Thread.sleep((int)ed.sample());
 		}
 		System.out.println("i is" +i);
 		

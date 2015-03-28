@@ -3,10 +3,12 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
+
 public class Algorithm {
 	/**
 	 * 
 	 */
+	
 	private static final long serialVersionUID = 1L;
 	public static Map<Integer, String> map=Collections.synchronizedMap(new TreeMap<Integer, String>());	
 	//public static Map<String, String> cs_queue=Collections.synchronizedMap(new TreeMap<String, String>());
