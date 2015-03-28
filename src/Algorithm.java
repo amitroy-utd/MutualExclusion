@@ -104,6 +104,8 @@ public class Algorithm {
 	{
 		while(true)
 		{
+			synchronized(cs_queue)
+			{
 			if(cs_queue.size()!=0)
 			{
 				synchronized(cs_flag)
@@ -151,12 +153,15 @@ public class Algorithm {
 			}
 		}
 	}
+	}
 	public static void cs_handler_own() 
 	{
 		while(true)
 		{
 			//String entry_1 = cs_queue.get();
+			synchronized(cs_queue){
 			currentProcessingRequest=cs_queue.get(0);
+			}
 			if(Integer.parseInt(currentProcessingRequest.split("_")[1])==NodeID)
 			{
 				synchronized(cs_flag){
@@ -220,7 +225,9 @@ public class Algorithm {
 	public static void cs_enter()
 	{
 		long timestamp=System.currentTimeMillis();		
+		synchronized(cs_queue){
 		cs_queue.add(timestamp+"_"+NodeID); //""+NodeID+""
+		}
 		System.out.println("In cs_enter==="+timestamp+"_"+NodeID+"  "+Integer.toString(NodeID));
 		cs_handler_own();					
 		for (Map.Entry<Integer, String> entry : shared_keys.entrySet())
@@ -242,7 +249,9 @@ public class Algorithm {
 			}
 		});
 		t.start(); 
+		synchronized(cs_queue){
 		cs_queue.remove(currentProcessingRequest);
+		}
 		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
 			 		 
 	}

@@ -138,10 +138,13 @@ public class Server implements Serializable {
                     		case "enabled":
                     						System.out.println("request received when in enabled state");
                     						// put in queue because current node is in critical section
+                    						synchronized(Algorithm.cs_queue){
                     						Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
+                    						}
                     						break;
                     		case "wait":
                     						System.out.println("request received when in wait state");
+                    						synchronized(Algorithm.cs_queue){
                     						final String currenttimestmpnode=Algorithm.cs_queue.get(0);	
                     						
                     						//String key = Algorithm.cs_queue.;
@@ -203,7 +206,7 @@ public class Server implements Serializable {
                     							}
                     							
                     						}
-                    			
+                    						}
                     						//String firstOther = Algorithm.cs_queue.get(Algorithm.cs_queue.firstKey());
                     						break;
                     		case "disabled":
@@ -255,8 +258,9 @@ public class Server implements Serializable {
                 	// chk for n-1 keys and call cs handler
                 	//put the request of the incoming node in the queue
                 	System.out.println("adding to queue");
+                	synchronized(Algorithm.cs_queue){
                 	Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
-                	
+                	}
                 }
                 else
                 {
