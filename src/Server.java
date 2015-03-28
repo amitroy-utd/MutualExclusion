@@ -1,3 +1,4 @@
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -138,19 +139,21 @@ public class Server implements Serializable {
                     		case "enabled":
                     						System.out.println("request received when in enabled state");
                     						// put in queue because current node is in critical section
-                    						synchronized(Algorithm.cs_queue){
-                    						Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
+                    						if (!(Algorithm.cs_queue.contains(msgrcvd.timestamp+"_"+msgrcvd.nodeid)))
+                    						{
+                    							Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
                     						}
-                    						break;
+                    							break;
                     		case "wait":
                     						System.out.println("request received when in wait state");
-                    						synchronized(Algorithm.cs_queue){
                     						final String currenttimestmpnode=Algorithm.cs_queue.get(0);	
+                    						System.out.println("######################In Server Current Proc is"+currenttimestmpnode);
                     						
                     						//String key = Algorithm.cs_queue.;
                     						boolean ourPriority = false;
                     						
                     						long timestamp = Long.parseLong(currenttimestmpnode.split("_")[0]);
+                    						System.out.println("################### timestamp is+"+timestamp);
                     						// check the timestamps and then nodeid
                     						//determine_priority();
                     						System.out.println("timestamp of rcvd node :"+msgrcvd.timestamp + " our node :"+ timestamp);
@@ -179,9 +182,11 @@ public class Server implements Serializable {
                     						if (ourPriority)
                     						{
                     							//do not send the response keys, put in our queue
-                    							System.out.println("our priority put in queue");
-                    							Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
-                        						
+                    							System.out.println("our priority put in queue"+msgrcvd.timestamp+"_"+msgrcvd.nodeid+"from"+Project2.CurrentNodeId);
+                    							if (!(Algorithm.cs_queue.contains(msgrcvd.timestamp+"_"+msgrcvd.nodeid)))
+                    							{
+                    								Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
+                    							}
                     						}
                     						else // its not our priority
                     						{
@@ -191,7 +196,7 @@ public class Server implements Serializable {
                     								String []nodeNetInfo=Algorithm.map.get(msgrcvd.nodeid).split(":");
                     								String keysToSend1 = " ";
     			                    				keysToSend1=Algorithm.shared_keys.get(msgrcvd.nodeid);
-                    								
+                    								System.out.println("************ shared keys:"+keysToSend1);
                     								MessageStruct ms = new MessageStruct(2,Project2.CurrentNodeId,Long.parseLong(currenttimestmpnode.split("_")[0]),keysToSend1);
                     								// remove the keys from shared key
                         							System.out.println("remove from shared keys");
@@ -206,7 +211,7 @@ public class Server implements Serializable {
                     							}
                     							
                     						}
-                    						}
+                    			
                     						//String firstOther = Algorithm.cs_queue.get(Algorithm.cs_queue.firstKey());
                     						break;
                     		case "disabled":
@@ -217,6 +222,7 @@ public class Server implements Serializable {
 			                    				System.out.println("sending the response");
 			                    				String keysToSend = " ";
 			                    				keysToSend=	Algorithm.shared_keys.get(msgrcvd.nodeid);
+			                    				System.out.println("#############keys to send"+keysToSend);
 			    								String []nodeNetInfo=Algorithm.map.get(msgrcvd.nodeid).split(":");
 			    								
 			    								MessageStruct ms = new MessageStruct(1,Project2.CurrentNodeId,0,keysToSend);
@@ -257,9 +263,10 @@ public class Server implements Serializable {
                 	Algorithm.shared_keys.put(msgrcvd.nodeid, msgrcvd.Keys);
                 	// chk for n-1 keys and call cs handler
                 	//put the request of the incoming node in the queue
-                	System.out.println("adding to queue");
-                	synchronized(Algorithm.cs_queue){
-                	Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
+                	System.out.println("adding to queue"+msgrcvd.timestamp+"_"+msgrcvd.nodeid +"from node"+Project2.CurrentNodeId);
+                	if (!(Algorithm.cs_queue.contains(msgrcvd.timestamp+"_"+msgrcvd.nodeid)))
+                	{
+                		Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
                 	}
                 }
                 else
