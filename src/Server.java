@@ -192,18 +192,20 @@ public class Server implements Serializable {
                     						{
                     							try
                     							{
-                    								System.out.println("not our priority");
-                    								String []nodeNetInfo=Algorithm.map.get(msgrcvd.nodeid).split(":");
-                    								String keysToSend1 = " ";
-    			                    				keysToSend1=Algorithm.shared_keys.get(msgrcvd.nodeid);
-                    								System.out.println("************ shared keys:"+keysToSend1);
-                    								MessageStruct ms = new MessageStruct(2,Project2.CurrentNodeId,Long.parseLong(currenttimestmpnode.split("_")[0]),keysToSend1);
-                    								// remove the keys from shared key
-                        							System.out.println("remove from shared keys");
-                        							Algorithm.shared_keys.remove(msgrcvd.nodeid);
-                        							
-                    					           	sendResponseMessage(ms, nodeNetInfo[0], Integer.parseInt(nodeNetInfo[1]));
-                    					           	
+                    								synchronized(Algorithm.shared_keys)
+                    								{
+                    									System.out.println("not our priority");
+                    									String []nodeNetInfo=Algorithm.map.get(msgrcvd.nodeid).split(":");
+                    									String keysToSend1 = " ";
+                    									keysToSend1=Algorithm.shared_keys.get(msgrcvd.nodeid);
+                    									System.out.println("************ shared keys:"+keysToSend1);
+                    									MessageStruct ms = new MessageStruct(2,Project2.CurrentNodeId,Long.parseLong(currenttimestmpnode.split("_")[0]),keysToSend1);
+                    									// remove the keys from shared key
+                    									System.out.println("remove from shared keys");
+                    									Algorithm.shared_keys.remove(msgrcvd.nodeid);
+                    									
+                    									sendResponseMessage(ms, nodeNetInfo[0], Integer.parseInt(nodeNetInfo[1]));
+                    								}
                     							}
                     							catch (Exception e)
                     							{
@@ -219,18 +221,20 @@ public class Server implements Serializable {
                     						System.out.println("req received when in disables");
 			                    			try
 			    							{
-			                    				System.out.println("sending the response");
-			                    				String keysToSend = " ";
-			                    				keysToSend=	Algorithm.shared_keys.get(msgrcvd.nodeid);
-			                    				System.out.println("#############keys to send"+keysToSend);
-			    								String []nodeNetInfo=Algorithm.map.get(msgrcvd.nodeid).split(":");
-			    								
-			    								MessageStruct ms = new MessageStruct(1,Project2.CurrentNodeId,0,keysToSend);
-			    								// remove the keys from shared key
-				                    			System.out.println("remove from shared keys");
-			    								Algorithm.shared_keys.remove(msgrcvd.nodeid);
-			    					           	sendResponseMessage(ms, nodeNetInfo[0], Integer.parseInt(nodeNetInfo[1]));
-			    					           	
+			                    				synchronized(Algorithm.shared_keys)
+                								{
+			                    					System.out.println("sending the response");
+			                    					String keysToSend = " ";
+			                    					keysToSend=	Algorithm.shared_keys.get(msgrcvd.nodeid);
+			                    					System.out.println("#############keys to send"+keysToSend);
+			                    					String []nodeNetInfo=Algorithm.map.get(msgrcvd.nodeid).split(":");
+			                    					
+			                    					MessageStruct ms = new MessageStruct(1,Project2.CurrentNodeId,0,keysToSend);
+			                    					// remove the keys from shared key
+			                    					System.out.println("remove from shared keys");
+			                    					Algorithm.shared_keys.remove(msgrcvd.nodeid);
+			                    					sendResponseMessage(ms, nodeNetInfo[0], Integer.parseInt(nodeNetInfo[1]));
+                								}
 			    							}
 			    							catch (Exception e)
 			    							{
@@ -250,8 +254,11 @@ public class Server implements Serializable {
                 {
                 	//add the keys to the shared list
                 	System.out.println("response received from :"+msgrcvd.nodeid+ " keys are" + msgrcvd.Keys);
-                	Algorithm.shared_keys.put(msgrcvd.nodeid, msgrcvd.Keys);
-                	//check for n-1 keys and call cs handler of algorithm module
+                	synchronized(Algorithm.shared_keys)
+					{
+                		Algorithm.shared_keys.put(msgrcvd.nodeid, msgrcvd.Keys);
+					}
+                		//check for n-1 keys and call cs handler of algorithm module
                 	//if n-1 keys not there do nothing
                 	
                 	
@@ -260,14 +267,18 @@ public class Server implements Serializable {
                 {
                 	//put the shared keys
                 	System.out.println("response received as req response "+ "nodid is: "+ msgrcvd.nodeid+" keys is "+msgrcvd.Keys);
-                	Algorithm.shared_keys.put(msgrcvd.nodeid, msgrcvd.Keys);
-                	// chk for n-1 keys and call cs handler
-                	//put the request of the incoming node in the queue
-                	System.out.println("adding to queue"+msgrcvd.timestamp+"_"+msgrcvd.nodeid +"from node"+Project2.CurrentNodeId);
-                	if (!(Algorithm.cs_queue.contains(msgrcvd.timestamp+"_"+msgrcvd.nodeid)))
-                	{
-                		Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
-                	}
+                	synchronized(Algorithm.shared_keys)
+					{
+                		Algorithm.shared_keys.put(msgrcvd.nodeid, msgrcvd.Keys);
+                		// chk for n-1 keys and call cs handler
+                		//put the request of the incoming node in the queue
+                		System.out.println("adding to queue"+msgrcvd.timestamp+"_"+msgrcvd.nodeid +"from node"+Project2.CurrentNodeId);
+                		if (!(Algorithm.cs_queue.contains(msgrcvd.timestamp+"_"+msgrcvd.nodeid)))
+                		{
+                			Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
+                		}
+					}
+                		
                 }
                 else
                 {
