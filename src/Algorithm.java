@@ -1,3 +1,4 @@
+
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -104,8 +105,6 @@ public class Algorithm {
 	{
 		while(true)
 		{
-			synchronized(cs_queue)
-			{
 			if(cs_queue.size()!=0)
 			{
 				synchronized(cs_flag)
@@ -114,6 +113,8 @@ public class Algorithm {
 					{
 						//String entry_1 = cs_queue.get(0);
 						final String currentProcessingRequest1=cs_queue.get(0);	
+						System.out.println("######################Other Current Proc is"+currentProcessingRequest1+"our node"+Project2.CurrentNodeId);
+						System.out.println("###################### node id:"+currentProcessingRequest1.split("_")[1]);
 						if(Integer.parseInt(currentProcessingRequest1.split("_")[1])!=NodeID)
 						{
 							//cs_flag="";
@@ -121,12 +122,16 @@ public class Algorithm {
 							final int requesting_node=Integer.parseInt(currentProcessingRequest1.split("_")[1]);
 							String []nodeNetInfo=map.get(requesting_node).split(":");
 				        	 String keysToSend = shared_keys.get(requesting_node);
+				        	 System.out.println("****requesting node is:"+requesting_node +"**keystosend are:"+keysToSend);
 							
 				        	 try {
+				        		 synchronized(shared_keys)
+				        		 {
 						        	//System.out.println("starting client");
 					            	MessageStruct ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest1.split("_")[0]),keysToSend);
 									new ClientDemo().startClient(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]),ms);
 									shared_keys.remove(requesting_node);
+				        		 }
 								} catch (Exception e) {
 									System.out.println("Something falied: " + e.getMessage());
 									e.printStackTrace();
@@ -135,8 +140,16 @@ public class Algorithm {
 				         
 								
 							cs_queue.remove(currentProcessingRequest1);
-							System.out.println("removed from queue");
+							System.out.println("removed from queue"+currentProcessingRequest1+"our node"+Project2.CurrentNodeId);
 							System.out.println("In cs_handler_other="+ currentProcessingRequest1);
+							synchronized(cs_queue)
+							{
+								ListIterator<String> listIterator1 = cs_queue.listIterator();
+								while (listIterator1.hasNext()) 
+								{ 
+									System.out.println("other queue for "+Project2.CurrentNodeId+"is"+listIterator1.next());
+								}
+							}
 							
 						}
 					}
@@ -145,7 +158,7 @@ public class Algorithm {
 			
 			try {
 				//System.out.println("going to sleep");
-				Thread.sleep(1000);
+				Thread.sleep(10);
 				//System.out.println("woke up");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -153,15 +166,14 @@ public class Algorithm {
 			}
 		}
 	}
-	}
 	public static void cs_handler_own() 
 	{
 		while(true)
 		{
 			//String entry_1 = cs_queue.get();
-			synchronized(cs_queue){
 			currentProcessingRequest=cs_queue.get(0);
-			}
+			System.out.println("######################Own Current Proc is"+currentProcessingRequest);
+			System.out.println("###################### Node is:"+currentProcessingRequest.split("_")[1]);
 			if(Integer.parseInt(currentProcessingRequest.split("_")[1])==NodeID)
 			{
 				synchronized(cs_flag){
@@ -169,14 +181,14 @@ public class Algorithm {
 					{	
 						System.out.println("critical section executing");						
 						cs_flag="enabled";	
-						Thread t = new Thread(new Runnable() {
+						/*Thread t = new Thread(new Runnable() {
 								public void run()
 								{
 									Applog.CreateWriteFile(NodeID, "start");
 								
 								}
 							});
-						t.start(); 
+						t.start(); */
 						    
 						return;							
 					}		
@@ -192,13 +204,24 @@ public class Algorithm {
 								final String value = entry.getValue();					
 								if(key!=NodeID && shared_keys.containsKey(key)==false)
 								{
-									System.out.println("sending request to: "+key);
+									System.out.println("sending request to: "+key +"from node"+Project2.CurrentNodeId+"for tmstmp:"+currentProcessingRequest);
 									      	 String []nodeNetInfo=value.split(":");
 												
 										            try {
 											        	//System.out.println("starting client");
 										            	MessageStruct ms=new MessageStruct(0,NodeID,Long.parseLong(currentProcessingRequest.split("_")[0]),"");
-														new ClientDemo().startClient(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]),ms);
+										            	//added
+										            	ObjectOutputStream out = null;
+								            			socket = new Socket(nodeNetInfo[0], Integer.parseInt(nodeNetInfo[1]));
+								             
+								            			out = new ObjectOutputStream(socket.getOutputStream());
+								            			out.writeObject(ms);
+								            			//System.out.println("wrote to server"+obj+"ipadd and port"+IPAddress+port);
+								            			
+								            			out.flush();
+								            			out.close();
+										            	//added
+								            			//new ClientDemo().startClient(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]),ms);
 													} catch (Exception e) {
 														System.out.println("Something falied: " + e.getMessage());
 														e.printStackTrace();
@@ -213,7 +236,7 @@ public class Algorithm {
 			}
 			try {
 				//System.out.println("going to sleep");
-				Thread.sleep(1000);
+				Thread.sleep(10);
 				//System.out.println("waking up");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -225,9 +248,7 @@ public class Algorithm {
 	public static void cs_enter()
 	{
 		long timestamp=System.currentTimeMillis();		
-		synchronized(cs_queue){
 		cs_queue.add(timestamp+"_"+NodeID); //""+NodeID+""
-		}
 		System.out.println("In cs_enter==="+timestamp+"_"+NodeID+"  "+Integer.toString(NodeID));
 		cs_handler_own();					
 		for (Map.Entry<Integer, String> entry : shared_keys.entrySet())
@@ -241,17 +262,15 @@ public class Algorithm {
 	public static void cs_leave()
 	{
 		cs_flag="disabled";	
-		Thread t = new Thread(new Runnable() {
+		/*Thread t = new Thread(new Runnable() {
 			public void run()
 			{
 				Applog.CreateWriteFile(NodeID, "end");
 			
 			}
 		});
-		t.start(); 
-		synchronized(cs_queue){
+		t.start();*/ 
 		cs_queue.remove(currentProcessingRequest);
-		}
 		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
 			 		 
 	}
