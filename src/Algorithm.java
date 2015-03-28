@@ -117,21 +117,22 @@ public class Algorithm {
 						System.out.println("###################### node id:"+currentProcessingRequest1.split("_")[1]);
 						if(Integer.parseInt(currentProcessingRequest1.split("_")[1])!=NodeID)
 						{
-							//cs_flag="";
-							System.out.println("sending response to "+ Integer.parseInt(currentProcessingRequest1.split("_")[1]));
-							final int requesting_node=Integer.parseInt(currentProcessingRequest1.split("_")[1]);
-							String []nodeNetInfo=map.get(requesting_node).split(":");
-				        	 String keysToSend = shared_keys.get(requesting_node);
-				        	 System.out.println("****requesting node is:"+requesting_node +"**keystosend are:"+keysToSend);
+							synchronized(shared_keys)
+			        		 {
+								//cs_flag="";
+								System.out.println("sending response to "+ Integer.parseInt(currentProcessingRequest1.split("_")[1]));
+								final int requesting_node=Integer.parseInt(currentProcessingRequest1.split("_")[1]);
+								String []nodeNetInfo=map.get(requesting_node).split(":");
+								String keysToSend = shared_keys.get(requesting_node);
+								System.out.println("****requesting node is:"+requesting_node +"**keystosend are:"+keysToSend);
 							
-				        	 try {
-				        		 synchronized(shared_keys)
-				        		 {
+								try {
+				        		 
 						        	//System.out.println("starting client");
 					            	MessageStruct ms=new MessageStruct(1,NodeID,Long.parseLong(currentProcessingRequest1.split("_")[0]),keysToSend);
 									new ClientDemo().startClient(nodeNetInfo[0],Integer.parseInt(nodeNetInfo[1]),ms);
 									shared_keys.remove(requesting_node);
-				        		 }
+								
 								} catch (Exception e) {
 									System.out.println("Something falied: " + e.getMessage());
 									e.printStackTrace();
@@ -139,18 +140,11 @@ public class Algorithm {
 								
 				         
 								
-							cs_queue.remove(currentProcessingRequest1);
-							System.out.println("removed from queue"+currentProcessingRequest1+"our node"+Project2.CurrentNodeId);
-							System.out.println("In cs_handler_other="+ currentProcessingRequest1);
-							synchronized(cs_queue)
-							{
-								ListIterator<String> listIterator1 = cs_queue.listIterator();
-								while (listIterator1.hasNext()) 
-								{ 
-									System.out.println("other queue for "+Project2.CurrentNodeId+"is"+listIterator1.next());
-								}
-							}
+								cs_queue.remove(currentProcessingRequest1);
+								System.out.println("removed from queue"+currentProcessingRequest1+"our node"+Project2.CurrentNodeId);
+								System.out.println("In cs_handler_other="+ currentProcessingRequest1);
 							
+			        		 }	
 						}
 					}
 				}
@@ -158,7 +152,7 @@ public class Algorithm {
 			
 			try {
 				//System.out.println("going to sleep");
-				Thread.sleep(10);
+				Thread.sleep(3);
 				//System.out.println("woke up");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -196,12 +190,15 @@ public class Algorithm {
 					{
 						if(cs_flag.equals("disabled"))
 						{
+							
 							System.out.println("in wait");
 							cs_flag="wait";
 							for (Map.Entry<Integer, String> entry : map.entrySet())
 							{
 								Integer key = entry.getKey();
 								final String value = entry.getValue();					
+								synchronized(shared_keys)
+				        		{
 								if(key!=NodeID && shared_keys.containsKey(key)==false)
 								{
 									System.out.println("sending request to: "+key +"from node"+Project2.CurrentNodeId+"for tmstmp:"+currentProcessingRequest);
@@ -228,6 +225,7 @@ public class Algorithm {
 													}
 									       											
 								}
+				        		}
 							}
 						}
 						
@@ -236,7 +234,7 @@ public class Algorithm {
 			}
 			try {
 				//System.out.println("going to sleep");
-				Thread.sleep(10);
+				Thread.sleep(3);
 				//System.out.println("waking up");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
