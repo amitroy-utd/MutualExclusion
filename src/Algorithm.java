@@ -175,14 +175,15 @@ public class Algorithm {
 					{	
 						System.out.println("critical section executing");						
 						cs_flag="enabled";	
-						/*Thread t = new Thread(new Runnable() {
+						final long timestamp=System.currentTimeMillis();
+						Thread t = new Thread(new Runnable() {
 								public void run()
 								{
-									Applog.CreateWriteFile(NodeID, "start");
+									Applog.CreateWriteFile(NodeID,timestamp,"start");
 								
 								}
 							});
-						t.start(); */
+						t.start(); 
 						    
 						return;							
 					}		
@@ -260,14 +261,15 @@ public class Algorithm {
 	public static void cs_leave()
 	{
 		cs_flag="disabled";	
-		/*Thread t = new Thread(new Runnable() {
+		final long timestamp=System.currentTimeMillis();
+		Thread t = new Thread(new Runnable() {
 			public void run()
 			{
-				Applog.CreateWriteFile(NodeID, "end");
+				Applog.CreateWriteFile(NodeID,timestamp,"end");
 			
 			}
 		});
-		t.start();*/ 
+		t.start();
 		cs_queue.remove(currentProcessingRequest);
 		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
 			 		 

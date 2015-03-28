@@ -2,16 +2,16 @@ import java.io.*;
 import java.util.Map;
 
 public class Applog {
-	public static void CreateWriteFile(int nodeid, String content)
+	public static void CreateWriteFile(int nodeid,long timestamp, String content)
 	{
 
 		File f = null;
-		long timestamp=System.currentTimeMillis();
+		//long timestamp=System.currentTimeMillis();
 		boolean bool = false;
 		try
 		{
 			// create new file
-			f = new File(Integer.toString(nodeid)+".txt");
+			f = new File("RC_log.txt");
 
 			// tries to create new file in the system
 			if(!f.exists())
