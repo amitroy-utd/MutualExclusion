@@ -19,7 +19,7 @@ public class Server implements Serializable {
         try
         { 
         	System.out.println("In server");
-            myServerSocket = new ServerSocket(portnum); 
+       		myServerSocket = new ServerSocket(portnum); 
         } 
         catch(IOException ioe) 
         { 
