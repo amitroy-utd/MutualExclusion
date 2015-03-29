@@ -1,29 +1,25 @@
-
-
-import java.util.ArrayList;
-
-import org.apache.commons.math3.distribution.ExponentialDistribution;
-
-
-
 public class digits {
 	
 	public static void main(String[] args) {
-		int mean=50;
-		ArrayList <Double> arr=new ArrayList<Double>();
-		ExponentialDistribution ed=new ExponentialDistribution(mean);
-		for(int i=0;i<1000;i++)
+		for(int i=1;i<=200;i++)
 		{
-			arr.add((ed.sample()));
-			System.out.println((int)ed.sample());
+			long timestamp=System.currentTimeMillis();
+			if(i%2==0)
+			{
+				Applog.CreateWriteFile(i,timestamp,"end");
+			}
+			else{
+				Applog.CreateWriteFile(i,timestamp,"start");
+			}
+			try {
+				Thread.sleep(5);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		double sum=0;
-		for (Double temp : arr) {
-			
-			sum=sum+temp;
-		}
-		System.out.println("Average is:"+(sum/arr.size()));
-		
+		System.out.println("Done!");
+		//Applog.CreateWriteFile(nodeid,timestamp,content);
 		
 	}
 		
