@@ -1,7 +1,7 @@
 public class digits {
 	
 	public static void main(String[] args) {
-		for(int i=1;i<=200;i++)
+		for(int i=1;i<=20000;i++)
 		{
 			long timestamp=System.currentTimeMillis();
 			if(i%2==0)
@@ -24,5 +24,3 @@ public class digits {
 	}
 		
 }
-
-
