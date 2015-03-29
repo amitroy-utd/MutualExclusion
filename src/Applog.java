@@ -10,7 +10,7 @@ public class Applog {
 		try
 		{
 			// create new file
-			f = new File("RC_log.txt");
+			f = new File(nodeid+".txt");
 
 			// tries to create new file in the system
 			if(!f.exists())

@@ -172,15 +172,17 @@ public class Algorithm {
 			System.out.println("###################### Node is:"+currentProcessingRequest.split("_")[1]);
 			if(Integer.parseInt(currentProcessingRequest.split("_")[1])==NodeID)
 			{
-				synchronized(cs_flag){
+				synchronized(cs_flag)
+				{
 					if(checkKeys()==true)
 					{	
 						System.out.println("critical section executing");						
 						cs_flag="enabled";	
-						final long timestamp=System.currentTimeMillis();
+						
 						Thread t = new Thread(new Runnable() {
 								public void run()
 								{
+									final long timestamp=System.currentTimeMillis();
 									Applog.CreateWriteFile(NodeID,timestamp,"start");
 								
 								}
@@ -262,17 +264,19 @@ public class Algorithm {
 	}
 	public static void cs_leave()
 	{
-		cs_flag="disabled";	
-		final long timestamp=System.currentTimeMillis();
-		Thread t = new Thread(new Runnable() {
-			public void run()
-			{
-				Applog.CreateWriteFile(NodeID,timestamp,"end");
-			
-			}
-		});
-		t.start();
-		cs_queue.remove(currentProcessingRequest);
+		synchronized(cs_flag){
+			cs_flag="disabled";			
+			Thread t = new Thread(new Runnable() {
+				public void run()
+				{
+					final long timestamp=System.currentTimeMillis();
+					Applog.CreateWriteFile(NodeID,timestamp,"end");
+				
+				}
+			});
+			t.start();
+			cs_queue.remove(currentProcessingRequest);
+		}
 		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
 			 		 
 	}
