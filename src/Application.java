@@ -83,7 +83,8 @@ public class Application implements Serializable {
 	
 	public void cs_execute()
 	{
-		FileReadingWriting.CreateWriteFile(NodeID, "", "aos_cs.txt", cs_exec_duration);
+		ExponentialDistribution ed1=new ExponentialDistribution( cs_exec_duration);
+		FileReadingWriting.CreateWriteFile(NodeID, "", "aos_cs.txt", (int)ed1.sample());
 		Algorithm.cs_leave();
 	}
 	
