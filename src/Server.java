@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ListIterator;
 import java.util.Map;
  
  
@@ -19,7 +20,7 @@ public class Server implements Serializable {
         try
         { 
         	System.out.println("In server");
-       		myServerSocket = new ServerSocket(portnum); 
+            myServerSocket = new ServerSocket(portnum); 
         } 
         catch(IOException ioe) 
         { 
@@ -194,17 +195,39 @@ public class Server implements Serializable {
                     							{
                     								synchronized(Algorithm.shared_keys)
                     								{
-                    									System.out.println("not our priority");
-                    									String []nodeNetInfo=Algorithm.map.get(msgrcvd.nodeid).split(":");
-                    									String keysToSend1 = " ";
-                    									keysToSend1=Algorithm.shared_keys.get(msgrcvd.nodeid);
-                    									System.out.println("************ shared keys:"+keysToSend1);
-                    									MessageStruct ms = new MessageStruct(2,Project2.CurrentNodeId,Long.parseLong(currenttimestmpnode.split("_")[0]),keysToSend1);
-                    									// remove the keys from shared key
-                    									System.out.println("remove from shared keys");
-                    									Algorithm.shared_keys.remove(msgrcvd.nodeid);
-                    									
-                    									sendResponseMessage(ms, nodeNetInfo[0], Integer.parseInt(nodeNetInfo[1]));
+                    									if (Algorithm.shared_keys.containsKey(msgrcvd.nodeid))
+                    									{
+                    										System.out.println("not our priority for "+currenttimestmpnode+"from"+Project2.CurrentNodeId);
+                    										String []nodeNetInfo=Algorithm.map.get(msgrcvd.nodeid).split(":");
+                    										String keysToSend1 = " ";
+                    										keysToSend1=Algorithm.shared_keys.get(msgrcvd.nodeid);
+                    										System.out.println("************ shared keys:"+keysToSend1 +"for:"+currenttimestmpnode+"from:"+Project2.CurrentNodeId);
+                    										MessageStruct ms = new MessageStruct(2,Project2.CurrentNodeId,Long.parseLong(currenttimestmpnode.split("_")[0]),keysToSend1);
+                    										// remove the keys from shared key
+                    										System.out.println("remove from shared keys");
+                    										Algorithm.shared_keys.remove(msgrcvd.nodeid);
+                    										
+                    										sendResponseMessage(ms, nodeNetInfo[0], Integer.parseInt(nodeNetInfo[1]));
+                    									}
+                    									else
+                    									{
+                    										System.out.println("&&&&&& added"+msgrcvd.timestamp+"_"+msgrcvd.nodeid+"for:"+Project2.CurrentNodeId+"&"+currenttimestmpnode);
+                    										// this means the key is in transit and has not reached from req node, hence adding to queue
+                    										
+                    										if (!(Algorithm.cs_queue.contains(msgrcvd.timestamp+"_"+msgrcvd.nodeid)))
+                                							{
+                                								Algorithm.cs_queue.add(msgrcvd.timestamp+"_"+msgrcvd.nodeid); //""+NodeID+""
+                                							}
+                    										synchronized (Algorithm.cs_queue) {
+                    											ListIterator<String> listIterator1 = Algorithm.cs_queue.listIterator();
+                        										while (listIterator1.hasNext()) 
+                        										{ 
+                        											System.out.println("PRoject"+Project2.CurrentNodeId+"queue s"+listIterator1.next());
+                        										}
+															}
+                    										
+                    										
+                    									}
                     								}
                     							}
                     							catch (Exception e)
@@ -226,7 +249,7 @@ public class Server implements Serializable {
 			                    					System.out.println("sending the response");
 			                    					String keysToSend = " ";
 			                    					keysToSend=	Algorithm.shared_keys.get(msgrcvd.nodeid);
-			                    					System.out.println("#############keys to send"+keysToSend);
+			                    					System.out.println("#############keys to send"+keysToSend+"to"+msgrcvd.timestamp+"_"+msgrcvd.nodeid);
 			                    					String []nodeNetInfo=Algorithm.map.get(msgrcvd.nodeid).split(":");
 			                    					
 			                    					MessageStruct ms = new MessageStruct(1,Project2.CurrentNodeId,0,keysToSend);
@@ -266,7 +289,7 @@ public class Server implements Serializable {
                 else if (msgrcvd.msgType == 2) // message received is a response with a request again
                 {
                 	//put the shared keys
-                	System.out.println("response received as req response "+ "nodid is: "+ msgrcvd.nodeid+" keys is "+msgrcvd.Keys);
+                	System.out.println("response received as req response "+ "nodid is: "+ msgrcvd.timestamp+"_"+msgrcvd.nodeid+" keys is "+msgrcvd.Keys);
                 	synchronized(Algorithm.shared_keys)
 					{
                 		Algorithm.shared_keys.put(msgrcvd.nodeid, msgrcvd.Keys);
