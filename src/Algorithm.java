@@ -3,12 +3,10 @@ import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
-
 public class Algorithm {
 	/**
 	 * 
 	 */
-	
 	private static final long serialVersionUID = 1L;
 	public static Map<Integer, String> map=Collections.synchronizedMap(new TreeMap<Integer, String>());	
 	//public static Map<String, String> cs_queue=Collections.synchronizedMap(new TreeMap<String, String>());
@@ -16,12 +14,13 @@ public class Algorithm {
 	public static Map<Integer, String> shared_keys=Collections.synchronizedMap(new TreeMap<Integer, String>());	
 	public static int NodeID=0;
 	public static String cs_flag="disabled";
-	static Socket socket = null;
-	static int cs_handler_call_flag=0;
-	static String currentProcessingRequest="";
-	public static int max_request_count=0;
 	public static ArrayList<String> logData=new ArrayList<String>();
 	public static int req_count=0;
+	static Socket socket = null;
+	public static int max_request_count=0;
+	static int cs_handler_call_flag=0;
+	static String currentProcessingRequest="";
+	
 
 	public void getNodeInfoFromFile(int nodeId, String topologyFile)
 	{
@@ -65,7 +64,7 @@ public class Algorithm {
 			{
 				Integer key = entry.getKey();
 				String value = entry.getValue();
-				System.out.println(key + " => " + value);
+				System.out.println("our node"+Project2.CurrentNodeId+"key"+key + " => " + value);
 			}
 		}
 		catch(Exception ex)
@@ -157,7 +156,7 @@ public class Algorithm {
 			
 			try {
 				//System.out.println("going to sleep");
-				Thread.sleep(3);
+				Thread.sleep(10);
 				//System.out.println("woke up");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -171,27 +170,26 @@ public class Algorithm {
 		{
 			//String entry_1 = cs_queue.get();
 			currentProcessingRequest=cs_queue.get(0);
-			System.out.println("######################Own Current Proc is"+currentProcessingRequest);
-			System.out.println("###################### Node is:"+currentProcessingRequest.split("_")[1]);
+			System.out.println("######################Own  Proc is"+currentProcessingRequest);
+			System.out.println("###################### NodCurrente is:"+currentProcessingRequest.split("_")[1]+"node id:"+NodeID);
 			if(Integer.parseInt(currentProcessingRequest.split("_")[1])==NodeID)
 			{
-				synchronized(cs_flag)
-				{
+				synchronized(cs_flag){
 					if(checkKeys()==true)
 					{	
 						System.out.println("critical section executing");						
 						cs_flag="enabled";	
-						
-						/*Thread t = new Thread(new Runnable() {
-								public void run()
-								{*/
-									final long timestamp=System.currentTimeMillis();
-									logData.add(NodeID+","+timestamp);									
+						//final long timestamp=System.currentTimeMillis();
+						//Thread t = new Thread(new Runnable() {
+							//	public void run()
+								//{
 									//Applog.CreateWriteFile(NodeID,timestamp,"start");
 								
-								/*}
-							});
-						t.start(); */
+							//	}
+							//});
+						//t.start(); 
+						final long timestamp=System.currentTimeMillis();
+						logData.add(NodeID+","+timestamp);		
 						    
 						return;							
 					}		
@@ -243,7 +241,7 @@ public class Algorithm {
 			}
 			try {
 				//System.out.println("going to sleep");
-				Thread.sleep(3);
+				Thread.sleep(10);
 				//System.out.println("waking up");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -289,7 +287,6 @@ public class Algorithm {
 			t.start();*/
 			
 		}
-		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
-			 		 
+		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID)); 
 	}
 }
