@@ -19,7 +19,9 @@ public class Algorithm {
 	static Socket socket = null;
 	static int cs_handler_call_flag=0;
 	static String currentProcessingRequest="";
-	
+	public static int max_request_count=0;
+	public static ArrayList<String> logData=new ArrayList<String>();
+	public static int req_count=0;
 
 	public void getNodeInfoFromFile(int nodeId, String topologyFile)
 	{
@@ -41,6 +43,7 @@ public class Algorithm {
 					if(nodeId==Integer.parseInt(data[0]))
 					{
 						//System.out.println("inside data "+ Integer.parseInt(data[0]) +"node id is"+nodeId);
+						max_request_count=Integer.parseInt(data[2]);
 						String []key_arr=data[5].split(":");
 						for(int i=0;i<key_arr.length;i++)
 						{
@@ -179,15 +182,16 @@ public class Algorithm {
 						System.out.println("critical section executing");						
 						cs_flag="enabled";	
 						
-						Thread t = new Thread(new Runnable() {
+						/*Thread t = new Thread(new Runnable() {
 								public void run()
-								{
+								{*/
 									final long timestamp=System.currentTimeMillis();
-									Applog.CreateWriteFile(NodeID,timestamp,"start");
+									logData.add(NodeID+","+timestamp);									
+									//Applog.CreateWriteFile(NodeID,timestamp,"start");
 								
-								}
+								/*}
 							});
-						t.start(); 
+						t.start(); */
 						    
 						return;							
 					}		
@@ -265,17 +269,25 @@ public class Algorithm {
 	public static void cs_leave()
 	{
 		synchronized(cs_flag){
-			cs_flag="disabled";			
-			Thread t = new Thread(new Runnable() {
-				public void run()
-				{
-					final long timestamp=System.currentTimeMillis();
-					Applog.CreateWriteFile(NodeID,timestamp,"end");
-				
-				}
-			});
-			t.start();
+			cs_flag="disabled";	
+			req_count+=1;
 			cs_queue.remove(currentProcessingRequest);
+			/*Thread t = new Thread(new Runnable() {
+				public void run()
+				{*/
+					final long timestamp=System.currentTimeMillis();
+					String last_line=logData.get(logData.size()-1);
+					logData.set(logData.size()-1,last_line+","+NodeID+","+timestamp);	
+					if(req_count==max_request_count)
+					{
+						Applog.CreateWriteFile(NodeID);
+					}
+					//Applog.CreateWriteFile(NodeID,timestamp,"end");
+				
+				/*}
+			});
+			t.start();*/
+			
 		}
 		System.out.println("In cs_leave==="+currentProcessingRequest+"  "+Integer.toString(NodeID));
 			 		 

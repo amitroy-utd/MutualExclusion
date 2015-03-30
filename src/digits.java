@@ -6,10 +6,10 @@ public class digits {
 			long timestamp=System.currentTimeMillis();
 			if(i%2==0)
 			{
-				Applog.CreateWriteFile(i,timestamp,"end");
+				//Applog.CreateWriteFile(i,timestamp,"end");
 			}
 			else{
-				Applog.CreateWriteFile(i,timestamp,"start");
+				//Applog.CreateWriteFile(i,timestamp,"start");
 			}
 			try {
 				Thread.sleep(5);

@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.Map;
 
 public class Applog {
-	public static void CreateWriteFile(int nodeid,long timestamp, String content)
+	public static void CreateWriteFile(int nodeid)
 	{
 
 		File f = null;
@@ -19,12 +19,10 @@ public class Applog {
 			}
 			FileWriter fw = new FileWriter(f.getAbsoluteFile(),true);
 			BufferedWriter bw = new BufferedWriter(fw);
-			if(content.equals("start")){
-				bw.write(nodeid+","+timestamp);
+			for(String log:Algorithm.logData)
+			{
+				bw.write(log+"\n");
 			}
-			else{
-				bw.write(","+timestamp+"\n");
-			}						
 			bw.close();               
 		}
 		catch(Exception e)
